@@ -102,7 +102,7 @@
 // });
 
 
-// server.js (Express.js Backend)
+
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
@@ -117,7 +117,7 @@ app.use(bodyParser.text({ type: "application/xml", limit: "10mb" }));
 
 app.post("/process-image", (req, res) => {
   try {
-    const xml = req.body; // The XML string as received
+    const xml = req.body; 
 
     const filename = `uploaded_${Date.now()}.xml`; // Generate a unique filename
     const updatesFolderPath = path.join(__dirname, "updates");

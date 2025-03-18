@@ -9,7 +9,16 @@ function ImageUploader() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
-
+const [objects, setObjects] = useState([
+  { name: "robber", bndbox: { xmin: 42, ymin: 6, xmax: 57, ymax: 30 } },
+  { name: "crowbar", bndbox: { xmin: 27, ymin: 20, xmax: 41, ymax: 45 } },
+  { name: "gun", bndbox: { xmin: 23, ymin: 85, xmax: 30, ymax: 103 } },
+  { name: "robber", bndbox: { xmin: 91, ymin: 8, xmax: 111, ymax: 31 } },
+  { name: "robber", bndbox: { xmin: 153, ymin: 8, xmax: 173, ymax: 32 } },
+  { name: "robber", bndbox: { xmin: 134, ymin: 18, xmax: 148, ymax: 38 } },
+  { name: "robber", bndbox: { xmin: 201, ymin: 13, xmax: 220, ymax: 36 } },
+  { name: "robber", bndbox: { xmin: 239, ymin: 21, xmax: 258, ymax: 43 } },
+]); 
   const handleDragOver = (e) => {
     e.preventDefault();
   };
@@ -55,50 +64,69 @@ function ImageUploader() {
     if (!image) return;
 
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64Image = reader.result.split(",")[1];
-      const xml = xmljs.js2xml(
-        {
-          image: {
-            _attributes: {
-              format: image.type,
-            },
-            _text: base64Image,
-          },
-        },
-        { compact: true, ignoreComment: true, spaces: 4 }
-      );
+   reader.onloadend = async () => {
+     const xml = xmljs.js2xml(
+       {
+         annotation: {
+           folder: "images",
+           filename: image.name,
+           path: "C:\\Users\\steve\\PROJECT\\Dataset\\images\\" + image.name,
+           source: {
+             database: "Unknown",
+           },
+           size: {
+             width: 303,
+             height: 166,
+             depth: 3,
+           },
+           segmented: 0,
+           object: objects.map((obj) => ({
+             name: obj.name,
+             pose: "Unspecified",
+             truncated: 0,
+             difficult: 0,
+             bndbox: {
+               xmin: obj.bndbox.xmin,
+               ymin: obj.bndbox.ymin,
+               xmax: obj.bndbox.xmax,
+               ymax: obj.bndbox.ymax,
+             },
+           })),
+         },
+       },
+       { compact: true, ignoreComment: true, spaces: 4 }
+     );
 
-      try {
-        const response = await axios.post(
-          "http://localhost:3001/process-image",
-          xml,
-          {
-            headers: {
-              "Content-Type": "application/xml",
-            },
-          }
-        );
-        setResult(response.data.message);
-        setError(null);
-      } catch (err) {
-        if (err.response) {
-          setError(
-            `Error: ${err.response.status} ${err.response.statusText} - ${
-              err.response.data.error || "An error occurred."
-            }`
-          );
-          console.log(err);
-        } else if (err.request) {
-          setError("Network error: No response from server.");
-          console.log(err);
-        } else {
-          setError("An unexpected error occurred.");
-          console.log(err);
-        }
-        setResult(null);
-      }
-    };
+     try {
+       const response = await axios.post(
+         "http://localhost:3001/process-image",
+         xml,
+         {
+           headers: {
+             "Content-Type": "application/xml",
+           },
+         }
+       );
+       setResult(response.data.message);
+       setError(null);
+     } catch (err) {
+       if (err.response) {
+         setError(
+           `Error: ${err.response.status} ${err.response.statusText} - ${
+             err.response.data.error || "An error occurred."
+           }`
+         );
+         console.log(err);
+       } else if (err.request) {
+         setError("Network error: No response from server.");
+         console.log(err);
+       } else {
+         setError("An unexpected error occurred.");
+         console.log(err);
+       }
+       setResult(null);
+     }
+   };
     reader.readAsDataURL(image);
   };
 
